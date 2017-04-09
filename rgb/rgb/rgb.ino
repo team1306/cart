@@ -42,23 +42,167 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 }
 
+void BouncingBalls(byte red, byte green, byte blue, int BallCount) {
+  float Gravity = -9.81;
+  int StartHeight = 1;
+  
+  float Height[BallCount];
+  float ImpactVelocityStart = sqrt( -2 * Gravity * StartHeight );
+  float ImpactVelocity[BallCount];
+  float TimeSinceLastBounce[BallCount];
+  int   Position[BallCount];
+  long  ClockTimeSinceLastBounce[BallCount];
+  float Dampening[BallCount];
+  
+  for (int i = 0 ; i < BallCount ; i++) {   
+    ClockTimeSinceLastBounce[i] = millis();
+    Height[i] = StartHeight;
+    Position[i] = 0; 
+    ImpactVelocity[i] = ImpactVelocityStart;
+    TimeSinceLastBounce[i] = 0;
+    Dampening[i] = 0.90 - float(i)/pow(BallCount,2); 
+  }
+
+  while (true) {
+    for (int i = 0 ; i < BallCount ; i++) {
+      TimeSinceLastBounce[i] =  millis() - ClockTimeSinceLastBounce[i];
+      Height[i] = 0.5 * Gravity * pow( TimeSinceLastBounce[i]/1000 , 2.0 ) + ImpactVelocity[i] * TimeSinceLastBounce[i]/1000;
+  
+      if ( Height[i] < 0 ) {                      
+        Height[i] = 0;
+        ImpactVelocity[i] = Dampening[i] * ImpactVelocity[i];
+        ClockTimeSinceLastBounce[i] = millis();
+  
+        if ( ImpactVelocity[i] < 0.01 ) {
+          ImpactVelocity[i] = ImpactVelocityStart;
+        }
+      }
+      Position[i] = round( Height[i] * (NUM_LEDS - 1) / StartHeight);
+    }
+  
+    for (int i = 0 ; i < BallCount ; i++) {
+      strip.setPixelColor(Position[i],red,green,blue);
+    }
+    
+    strip.show();
+    setAll(0,0,0);
+  }
+}
+
 void loop() {
-  // Some example procedures showing how to display to the pixels:
-  colorWipe(strip.Color(255, 0, 0), 50); // Red
-  colorWipe(strip.Color(0, 255, 0), 50); // Green
-  colorWipe(strip.Color(0, 0, 255), 50); // Blue
-  colorWipe(strip.Color(0, 0, 0, 255), 50); // White
+  nightRider(0xff, 0, 0, 4, 10, 50);
+  Fire(55,120,15);
+  
+//  // Some example procedures showing how to display to the pixels:
+//  colorWipe(strip.Color(255, 0, 0), 50); // Red
+//  colorWipe(strip.Color(0, 255, 0), 50); // Green
+//  colorWipe(strip.Color(0, 0, 255), 50); // Blue
+//  colorWipe(strip.Color(0, 0, 0, 255), 50); // White
+//
+//  whiteOverRainbow(20,75,5);  
+//
+//  pulseWhite(5); 
+//
+//  // fullWhite();
+//  // delay(2000);
+//
+//  rainbowFade2White(3,3,1);
 
-  whiteOverRainbow(20,75,5);  
 
-  pulseWhite(5); 
+}
 
-  // fullWhite();
-  // delay(2000);
+void Fire(int Cooling, int Sparking, int SpeedDelay) {
+  static byte heat[NUM_LEDS];
+  int cooldown;
+  
+  // Step 1.  Cool down every cell a little
+  for( int i = 0; i < NUM_LEDS; i++) {
+    cooldown = random(0, ((Cooling * 10) / NUM_LEDS) + 2);
+    
+    if(cooldown>heat[i]) {
+      heat[i]=0;
+    } else {
+      heat[i]=heat[i]-cooldown;
+    }
+  }
+  
+  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+  for( int k= NUM_LEDS - 1; k >= 2; k--) {
+    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
+  }
+    
+  // Step 3.  Randomly ignite new 'sparks' near the bottom
+  if( random(255) < Sparking ) {
+    int y = random(7);
+    heat[y] = heat[y] + random(160,255);
+    //heat[y] = random(160,255);
+  }
 
-  rainbowFade2White(3,3,1);
+  // Step 4.  Convert heat to LED colors
+  for( int j = 0; j < NUM_LEDS; j++) {
+    setPixelHeatColor(j, heat[j] );
+  }
 
+  strip.show();
+  delay(SpeedDelay);
+}
 
+void setPixelHeatColor (int Pixel, byte temperature) {
+  // Scale 'heat' down from 0-255 to 0-191
+  byte t192 = round((temperature/255.0)*191);
+ 
+  // calculate ramp up from
+  byte heatramp = t192 & 0x3F; // 0..63
+  heatramp <<= 2; // scale up to 0..252
+ 
+  // figure out which third of the spectrum we're in:
+  if( t192 > 0x80) {                     // hottest
+    strip.setPixelColor(Pixel, 255, 255, heatramp);
+  } else if( t192 > 0x40 ) {             // middle
+    strip.setPixelColor(Pixel, 255, heatramp, 0);
+  } else {                               // coolest
+    strip.setPixelColor(Pixel, heatramp, 0, 0);
+  }
+}
+
+void nightRider(byte red, byte green, byte blue, int EyeSize, int SpeedDelay, int ReturnDelay) {
+  for(int i = 0; i < NUM_LEDS-EyeSize-2; i++) {
+    setAll(0,0,0);
+    strip.setPixelColor(i, red/10, green/10, blue/10);
+    for(int j = 1; j <= EyeSize; j++) {
+      strip.setPixelColor(i+j, red, green, blue); 
+    }
+    strip.setPixelColor(i+EyeSize+1, red/10, green/10, blue/10);
+    strip.show();
+    delay(SpeedDelay);
+  }
+  delay(ReturnDelay);
+  for(int i = NUM_LEDS-EyeSize-2; i > 0; i--) {
+    setAll(0,0,0);
+    strip.setPixelColor(i, red/10, green/10, blue/10);
+    for(int j = 1; j <= EyeSize; j++) {
+      strip.setPixelColor(i+j, red, green, blue); 
+    }
+    strip.setPixelColor(i+EyeSize+1, red/10, green/10, blue/10);
+    strip.show();
+    delay(SpeedDelay);
+  }
+  delay(ReturnDelay);
+}
+
+void colorWipe(byte red, byte green, byte blue, int SpeedDelay) {
+  for(uint16_t i=0; i<NUM_LEDS; i++) {
+      strip.setPixelColor(i, red, green, blue);
+      strip.show();
+      delay(SpeedDelay);
+  }
+}
+
+void setAll(byte red, byte green, byte blue) {
+  for(int i = 0; i < NUM_LEDS; i++ ) {
+    strip.setPixelColor(i, red, green, blue); 
+  }
+  strip.show();
 }
 
 // Fill the dots one after the other with a color
