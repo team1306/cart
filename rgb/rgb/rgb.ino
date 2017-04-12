@@ -54,12 +54,13 @@ void loop() {
     }
   }
   switch (loopiboi) {
-    case 1: nightRider(0xff, 0, 0, 4, 10, 50);
-    case 2: Fire(55,120,15);
-    case 3: colorWipe(strip.Color(255, 0, 0), 50);
-    case 4: colorWipe(strip.Color(0, 0, 255), 50);
-    case 5: whiteOverRainbow(20,75,5);
-    case 6: BouncingBalls(0xff, 0, 0, 3);
+    case 1: nightRider(0xff, 0, 0, 4, 10, 50); break;
+    case 2: Fire(55,120,15); break;
+    case 3: colorWipe(strip.Color(255, 0, 0), 50); break;
+    case 4: colorWipe(strip.Color(0, 0, 255), 50); break;
+    case 5: whiteOverRainbow(20,75,5); break;
+    case 6: BouncingBalls(0xff, 0, 0, 3); break;
+    default: loopiboi = 0; break;
   }
   nightRider(0xff, 0, 0, 4, 10, 50);
   //Fire(55,120,15);
