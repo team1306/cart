@@ -40,6 +40,43 @@ void setup() {
   strip.setBrightness(BRIGHTNESS);
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+
+  pinMode(9, INPUT);
+}
+
+int loopiboi = 0;
+void loop() {
+  if (digitalRead(9)) {
+    loopiboi++;
+    if (loopiboi >= 6) {
+      loopiboi = 0;
+    }
+  }
+  switch (loopiboi) {
+    case 1: nightRider(0xff, 0, 0, 4, 10, 50);
+    case 2: Fire(55,120,15);
+    case 3: colorWipe(strip.Color(255, 0, 0), 50);
+    case 4: colorWipe(strip.Color(0, 0, 255), 50);
+    case 5: whiteOverRainbow(20,75,5);
+    case 6: BouncingBalls(0xff, 0, 0, 3);
+  }
+  nightRider(0xff, 0, 0, 4, 10, 50);
+  //Fire(55,120,15);
+  
+//  // Some example procedures showing how to display to the pixels:
+//  colorWipe(strip.Color(255, 0, 0), 50); // Red
+//  colorWipe(strip.Color(0, 255, 0), 50); // Green
+//  colorWipe(strip.Color(0, 0, 255), 50); // Blue
+//  colorWipe(strip.Color(0, 0, 0, 255), 50); // White
+//
+//  whiteOverRainbow(20,75,5);  
+//
+//  pulseWhite(5); 
+//
+//  // fullWhite();
+//  // delay(2000);
+//
+//  rainbowFade2White(3,3,1);
 }
 
 void BouncingBalls(byte red, byte green, byte blue, int BallCount) {
@@ -87,28 +124,6 @@ void BouncingBalls(byte red, byte green, byte blue, int BallCount) {
     strip.show();
     setAll(0,0,0);
   }
-}
-
-void loop() {
-  nightRider(0xff, 0, 0, 4, 10, 50);
-  Fire(55,120,15);
-  
-//  // Some example procedures showing how to display to the pixels:
-//  colorWipe(strip.Color(255, 0, 0), 50); // Red
-//  colorWipe(strip.Color(0, 255, 0), 50); // Green
-//  colorWipe(strip.Color(0, 0, 255), 50); // Blue
-//  colorWipe(strip.Color(0, 0, 0, 255), 50); // White
-//
-//  whiteOverRainbow(20,75,5);  
-//
-//  pulseWhite(5); 
-//
-//  // fullWhite();
-//  // delay(2000);
-//
-//  rainbowFade2White(3,3,1);
-
-
 }
 
 void Fire(int Cooling, int Sparking, int SpeedDelay) {
