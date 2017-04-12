@@ -42,6 +42,7 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 
   pinMode(9, INPUT);
+  strip.setBrightness(255);
 }
 
 int loopiboi = 0;
