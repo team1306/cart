@@ -42,6 +42,8 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 
   pinMode(9, INPUT);
+  pinMode(3, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(3), nexteffect, FALLING);
   strip.setBrightness(255);
 }
 
@@ -79,6 +81,11 @@ void loop() {
 //  // delay(2000);
 //
 //  rainbowFade2White(3,3,1);
+}
+
+void nextEffect() {
+  setAll(0,0,0);
+  loopiboi++;
 }
 
 void BouncingBalls(byte red, byte green, byte blue, int BallCount) {
