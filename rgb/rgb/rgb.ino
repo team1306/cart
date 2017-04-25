@@ -4,6 +4,7 @@
 #endif
 
 #define PIN 11
+#define BUTTON_PIN 3
 
 #define NUM_LEDS 168   //13, 50, 40, 50, 13
 
@@ -41,7 +42,7 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 
   pinMode(9, INPUT);
-  pinMode(3, INPUT_PULLUP);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(3), nextEffect, FALLING);
 }
 
@@ -54,7 +55,7 @@ void loop() {
 //    }
 //  }
   switch (loopiboi) {
-    case 0: nightRider2(strip.Color(255, 0, 0), strip.Color(0, 0, 0), 50); break;
+    case 0: nightRider2(strip.Color(255, 0, 0), strip.Color(0, 0, 0), 3, 50); break;
     case 1: rainbow(50); break;
     case 2: colorWipe(strip.Color(255, 0, 0), 50); break;
     case 3: colorWipe(strip.Color(0, 0, 255), 50); break;
@@ -111,16 +112,16 @@ void nightRider2(uint32_t c, uint32_t c2, uint8_t len, int delayTime) {
     delay(delayTime);
   }
   
-  for (uint8_t j=0; j<len; j++) {
-    strip.setPixelColor(i, c);
-  }
-  strip.setPixelColor(i, c);
-  
-  for(uint16_t i=0; i<strip.numPixels(); i++) {
-    strip.setPixelColor(i, c);
-    strip.show();
-    delay(wait);
-  }
+//  for (uint8_t j=0; j<len; j++) {
+//    strip.setPixelColor(i, c);
+//  }
+//  strip.setPixelColor(i, c);
+//  
+//  for(uint16_t i=0; i<strip.numPixels(); i++) {
+//    strip.setPixelColor(i, c);
+//    strip.show();
+//    delay(wait);
+//  }
 }
 
 void BouncingBalls(byte red, byte green, byte blue, int BallCount) {
