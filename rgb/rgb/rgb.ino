@@ -7,7 +7,7 @@
 
 #define NUM_LEDS 168   //13, 50, 40, 50, 13
 
-#define BRIGHTNESS 50
+#define BRIGHTNESS 255
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRBW + NEO_KHZ800);
 
@@ -29,9 +29,8 @@ int gamma[] = {
   177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
   215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
 
-
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
   #if defined (__AVR_ATtiny85__)
     if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
@@ -43,28 +42,28 @@ void setup() {
 
   pinMode(9, INPUT);
   pinMode(3, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(3), nexteffect, FALLING);
-  strip.setBrightness(255);
+  attachInterrupt(digitalPinToInterrupt(3), nextEffect, FALLING);
 }
 
 int loopiboi = 0;
 void loop() {
-  if (digitalRead(9)) {
-    loopiboi++;
-    if (loopiboi >= 6) {
-      loopiboi = 0;
-    }
-  }
+//  if (digitalRead(9)) {
+//    loopiboi++;
+//    if (loopiboi >= 6) {
+//      loopiboi = 0;
+//    }
+//  }
   switch (loopiboi) {
-    case 1: nightRider(0xff, 0, 0, 4, 10, 50); break;
-    case 2: Fire(55,120,15); break;
-    case 3: colorWipe(strip.Color(255, 0, 0), 50); break;
-    case 4: colorWipe(strip.Color(0, 0, 255), 50); break;
-    case 5: whiteOverRainbow(20,75,5); break;
-    case 6: BouncingBalls(0xff, 0, 0, 3); break;
+    case 0: nightRider2(strip.Color(255, 0, 0), strip.Color(0, 0, 0), 50); break;
+    case 1: rainbow(50); break;
+    case 2: colorWipe(strip.Color(255, 0, 0), 50); break;
+    case 3: colorWipe(strip.Color(0, 0, 255), 50); break;
+    case 4: whiteOverRainbow(20,75,5); break;
+    case 5: nightRider(0xff, 0, 0, 4, 10, 50); break;
+    case 6: Fire(55, 120, 15); break;
     default: loopiboi = 0; break;
   }
-  nightRider(0xff, 0, 0, 4, 10, 50);
+  //nightRider(0xff, 0, 0, 4, 10, 50);
   //Fire(55,120,15);
   
 //  // Some example procedures showing how to display to the pixels:
@@ -86,6 +85,42 @@ void loop() {
 void nextEffect() {
   setAll(0,0,0);
   loopiboi++;
+}
+
+void badgerbots(int delayTime) {
+  colorWipe(strip.Color(255, 0, 0), 50);
+  delay(delayTime);
+  colorWipe(strip.Color(0, 0, 0, 255), 50);
+  delay(delayTime);
+}
+
+void nightRider2(uint32_t c, uint32_t c2, uint8_t len, int delayTime) {
+  int i=0;
+  for (int i=0; i<NUM_LEDS; i++) {  //FORWARD
+    strip.setPixelColor(i, c);
+    if (i-len > 0) {
+      strip.setPixelColor(i-len, c2);
+    }
+    delay(delayTime);
+  }
+  for (int i=0; i<NUM_LEDS; i++) {  //BACKWARD
+    strip.setPixelColor(NUM_LEDS-i, c);
+    if ((NUM_LEDS-i) <= NUM_LEDS-len) {
+      strip.setPixelColor((NUM_LEDS-i)+len-1, c2);
+    }
+    delay(delayTime);
+  }
+  
+  for (uint8_t j=0; j<len; j++) {
+    strip.setPixelColor(i, c);
+  }
+  strip.setPixelColor(i, c);
+  
+  for(uint16_t i=0; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, c);
+    strip.show();
+    delay(wait);
+  }
 }
 
 void BouncingBalls(byte red, byte green, byte blue, int BallCount) {
@@ -217,6 +252,14 @@ void nightRider(byte red, byte green, byte blue, int EyeSize, int SpeedDelay, in
 void colorWipe(byte red, byte green, byte blue, int SpeedDelay) {
   for(uint16_t i=0; i<NUM_LEDS; i++) {
       strip.setPixelColor(i, red, green, blue);
+      strip.show();
+      delay(SpeedDelay);
+  }
+}
+
+void colorWipe(byte red, byte green, byte blue, byte white, int SpeedDelay) {
+  for(uint16_t i=0; i<NUM_LEDS; i++) {
+      strip.setPixelColor(i, red, green, blue, white);
       strip.show();
       delay(SpeedDelay);
   }
