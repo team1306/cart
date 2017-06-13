@@ -3,9 +3,9 @@
   #include <avr/power.h>
 #endif
 
-#define PIN 11
-#define BUTTON_PIN 3
+#define BUTTON_PIN 2
 
+#define PIN 11
 #define NUM_LEDS 168   //13, 50, 40, 50, 13
 
 #define BRIGHTNESS 255
@@ -32,40 +32,27 @@ int gamma[] = {
 
 void setup() {
   Serial.begin(9600);
-  // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
-  #if defined (__AVR_ATtiny85__)
-    if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
-  #endif
-  // End of trinket special code
   strip.setBrightness(BRIGHTNESS);
   strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
+  strip.show();
 
-  pinMode(9, INPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(3), nextEffect, FALLING);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), nextEffect, FALLING);
 }
 
-int loopiboi = 0;
+int loopiboi = 1;
 void loop() {
-//  if (digitalRead(9)) {
-//    loopiboi++;
-//    if (loopiboi >= 6) {
-//      loopiboi = 0;
-//    }
-//  }
+  Serial.println(loopiboi);
   switch (loopiboi) {
-    case 0: nightRider2(strip.Color(255, 0, 0), strip.Color(0, 0, 0), 3, 50); break;
-    case 1: rainbow(50); break;
+    case 0: whiteOverRainbow(20,75,5); break;
+    case 1: rainbow(0); break;
     case 2: colorWipe(strip.Color(255, 0, 0), 50); break;
     case 3: colorWipe(strip.Color(0, 0, 255), 50); break;
-    case 4: whiteOverRainbow(20,75,5); break;
-    case 5: nightRider(0xff, 0, 0, 4, 10, 50); break;
+    case 4: nightRider(0xff, 0, 0, 4, 10, 50); break;
+    case 5: nightRider2(strip.Color(255, 0, 0), strip.Color(0, 0, 0), 3, 50); break;
     case 6: Fire(55, 120, 15); break;
     default: loopiboi = 0; break;
   }
-  //nightRider(0xff, 0, 0, 4, 10, 50);
-  //Fire(55,120,15);
   
 //  // Some example procedures showing how to display to the pixels:
 //  colorWipe(strip.Color(255, 0, 0), 50); // Red
@@ -95,6 +82,13 @@ void badgerbots(int delayTime) {
   delay(delayTime);
 }
 
+void colorAlternate(Color c1, Color c2, int delayTime) {
+  colorWipe(strip.c1, 50);
+  delay(delayTime);
+  colorWipe(strip.c2, 50);
+  delay(delayTime);
+}
+
 void nightRider2(uint32_t c, uint32_t c2, uint8_t len, int delayTime) {
   int i=0;
   for (int i=0; i<NUM_LEDS; i++) {  //FORWARD
@@ -110,118 +104,6 @@ void nightRider2(uint32_t c, uint32_t c2, uint8_t len, int delayTime) {
       strip.setPixelColor((NUM_LEDS-i)+len-1, c2);
     }
     delay(delayTime);
-  }
-  
-//  for (uint8_t j=0; j<len; j++) {
-//    strip.setPixelColor(i, c);
-//  }
-//  strip.setPixelColor(i, c);
-//  
-//  for(uint16_t i=0; i<strip.numPixels(); i++) {
-//    strip.setPixelColor(i, c);
-//    strip.show();
-//    delay(wait);
-//  }
-}
-
-void BouncingBalls(byte red, byte green, byte blue, int BallCount) {
-  float Gravity = -9.81;
-  int StartHeight = 1;
-  
-  float Height[BallCount];
-  float ImpactVelocityStart = sqrt( -2 * Gravity * StartHeight );
-  float ImpactVelocity[BallCount];
-  float TimeSinceLastBounce[BallCount];
-  int   Position[BallCount];
-  long  ClockTimeSinceLastBounce[BallCount];
-  float Dampening[BallCount];
-  
-  for (int i = 0 ; i < BallCount ; i++) {   
-    ClockTimeSinceLastBounce[i] = millis();
-    Height[i] = StartHeight;
-    Position[i] = 0; 
-    ImpactVelocity[i] = ImpactVelocityStart;
-    TimeSinceLastBounce[i] = 0;
-    Dampening[i] = 0.90 - float(i)/pow(BallCount,2); 
-  }
-
-  while (true) {
-    for (int i = 0 ; i < BallCount ; i++) {
-      TimeSinceLastBounce[i] =  millis() - ClockTimeSinceLastBounce[i];
-      Height[i] = 0.5 * Gravity * pow( TimeSinceLastBounce[i]/1000 , 2.0 ) + ImpactVelocity[i] * TimeSinceLastBounce[i]/1000;
-  
-      if ( Height[i] < 0 ) {                      
-        Height[i] = 0;
-        ImpactVelocity[i] = Dampening[i] * ImpactVelocity[i];
-        ClockTimeSinceLastBounce[i] = millis();
-  
-        if ( ImpactVelocity[i] < 0.01 ) {
-          ImpactVelocity[i] = ImpactVelocityStart;
-        }
-      }
-      Position[i] = round( Height[i] * (NUM_LEDS - 1) / StartHeight);
-    }
-  
-    for (int i = 0 ; i < BallCount ; i++) {
-      strip.setPixelColor(Position[i],red,green,blue);
-    }
-    
-    strip.show();
-    setAll(0,0,0);
-  }
-}
-
-void Fire(int Cooling, int Sparking, int SpeedDelay) {
-  static byte heat[NUM_LEDS];
-  int cooldown;
-  
-  // Step 1.  Cool down every cell a little
-  for( int i = 0; i < NUM_LEDS; i++) {
-    cooldown = random(0, ((Cooling * 10) / NUM_LEDS) + 2);
-    
-    if(cooldown>heat[i]) {
-      heat[i]=0;
-    } else {
-      heat[i]=heat[i]-cooldown;
-    }
-  }
-  
-  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-  for( int k= NUM_LEDS - 1; k >= 2; k--) {
-    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
-  }
-    
-  // Step 3.  Randomly ignite new 'sparks' near the bottom
-  if( random(255) < Sparking ) {
-    int y = random(7);
-    heat[y] = heat[y] + random(160,255);
-    //heat[y] = random(160,255);
-  }
-
-  // Step 4.  Convert heat to LED colors
-  for( int j = 0; j < NUM_LEDS; j++) {
-    setPixelHeatColor(j, heat[j] );
-  }
-
-  strip.show();
-  delay(SpeedDelay);
-}
-
-void setPixelHeatColor (int Pixel, byte temperature) {
-  // Scale 'heat' down from 0-255 to 0-191
-  byte t192 = round((temperature/255.0)*191);
- 
-  // calculate ramp up from
-  byte heatramp = t192 & 0x3F; // 0..63
-  heatramp <<= 2; // scale up to 0..252
- 
-  // figure out which third of the spectrum we're in:
-  if( t192 > 0x80) {                     // hottest
-    strip.setPixelColor(Pixel, 255, 255, heatramp);
-  } else if( t192 > 0x40 ) {             // middle
-    strip.setPixelColor(Pixel, 255, heatramp, 0);
-  } else {                               // coolest
-    strip.setPixelColor(Pixel, heatramp, 0, 0);
   }
 }
 
@@ -273,7 +155,6 @@ void setAll(byte red, byte green, byte blue) {
   strip.show();
 }
 
-// Fill the dots one after the other with a color
 void colorWipe(uint32_t c, uint8_t wait) {
   for(uint16_t i=0; i<strip.numPixels(); i++) {
     strip.setPixelColor(i, c);
